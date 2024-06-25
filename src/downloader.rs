@@ -790,16 +790,26 @@ impl From<aspotify::Track> for SearchResult {
 
 impl From<aspotify::Track> for Download {
 	fn from(val: aspotify::Track) -> Self {
-		Download {
-			id: 0,
-			track_id: val.id.unwrap(),
-			title: val.name,
-			subtitle: val
-				.artists
-				.first()
-				.map(|a| a.name.to_owned())
-				.unwrap_or_default(),
-			state: DownloadState::None,
+		if val.is_local || val.id.is_none() {
+			Download {
+				id: 0,
+				track_id: "This should not be a valid ID".to_string(),
+				title: "Local Track: ".to_owned() + &val.name,
+				subtitle: String::new(),
+				state: DownloadState::Error("Cannot Download Local Track".to_string()),
+			}
+		} else {
+			Download {
+				id: 0,
+				track_id: val.id.unwrap(),
+				title: val.name,
+				subtitle: val
+					.artists
+					.first()
+					.map(|a| a.name.to_owned())
+					.unwrap_or_default(),
+				state: DownloadState::None,
+			}
 		}
 	}
 }

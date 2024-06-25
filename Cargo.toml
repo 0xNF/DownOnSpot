@@ -16,7 +16,7 @@ build = "build.rs"
 winres = "0.1"
 
 [dependencies]
-clap = "4.2.1"
+clap = { version = "4.2.1", features = ["cargo", "derive"] }
 log = "0.4"
 url = "2.2"
 protobuf = "3.1"

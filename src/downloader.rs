@@ -84,20 +84,36 @@ impl Downloader {
 		let uri = Spotify::parse_uri(uri)?;
 		let item = self.spotify.resolve_uri(&uri).await?;
 		match item {
-			SpotifyItem::Track(t) => self.add_to_queue(t.into()).await,
+			SpotifyItem::Track(t) => {
+				if t.id.is_some() && !t.is_local {
+					self.add_to_queue(t.into()).await;
+				}
+			}
 			SpotifyItem::Album(a) => {
 				let tracks = self.spotify.full_album(&a.id).await?;
-				let queue: Vec<Download> = tracks.into_iter().map(|t| t.into()).collect();
+				let queue: Vec<Download> = tracks
+					.into_iter()
+					.filter(|t| t.id.is_some() && !t.is_local)
+					.map(|t| t.into())
+					.collect();
 				self.add_to_queue_multiple(queue).await;
 			}
 			SpotifyItem::Playlist(p) => {
 				let tracks = self.spotify.full_playlist(&p.id).await?;
-				let queue: Vec<Download> = tracks.into_iter().map(|t| t.into()).collect();
+				let queue: Vec<Download> = tracks
+					.into_iter()
+					.filter(|t| t.id.is_some() && !t.is_local)
+					.map(|t| t.into())
+					.collect();
 				self.add_to_queue_multiple(queue).await;
 			}
 			SpotifyItem::Artist(a) => {
 				let tracks = self.spotify.full_artist(&a.id).await?;
-				let queue: Vec<Download> = tracks.into_iter().map(|t| t.into()).collect();
+				let queue: Vec<Download> = tracks
+					.into_iter()
+					.filter(|t| t.id.is_some() && !t.is_local)
+					.map(|t| t.into())
+					.collect();
 				self.add_to_queue_multiple(queue).await;
 			}
 
@@ -790,26 +806,16 @@ impl From<aspotify::Track> for SearchResult {
 
 impl From<aspotify::Track> for Download {
 	fn from(val: aspotify::Track) -> Self {
-		if val.is_local || val.id.is_none() {
-			Download {
-				id: 0,
-				track_id: "This should not be a valid ID".to_string(),
-				title: "Local Track: ".to_owned() + &val.name,
-				subtitle: String::new(),
-				state: DownloadState::Error("Cannot Download Local Track".to_string()),
-			}
-		} else {
-			Download {
-				id: 0,
-				track_id: val.id.unwrap(),
-				title: val.name,
-				subtitle: val
-					.artists
-					.first()
-					.map(|a| a.name.to_owned())
-					.unwrap_or_default(),
-				state: DownloadState::None,
-			}
+		Download {
+			id: 0,
+			track_id: val.id.unwrap(),
+			title: val.name,
+			subtitle: val
+				.artists
+				.first()
+				.map(|a| a.name.to_owned())
+				.unwrap_or_default(),
+			state: DownloadState::None,
 		}
 	}
 }

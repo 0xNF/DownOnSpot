@@ -21,7 +21,7 @@ fn get_command() -> Command {
 		.author(crate_authors!())
 		.version(crate_version!())
 		.about(format!(
-			"Settings File: {}",
+			"Settings file located at: {}",
 			settings::get_config_settings_path().to_string_lossy()
 		));
 	let cli = Args::augment_args(cli);

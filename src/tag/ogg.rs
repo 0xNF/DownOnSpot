@@ -91,6 +91,6 @@ impl super::Tag for OggTag {
 	}
 
 	fn add_unique_file_identifier(&mut self, track_id: &str) {
-		self.tag.add_tag_single("SPOTIFY.COM_TRACKID", track_id);
+		self.tag.add_tag_single("SPOTIFY_TRACKID", track_id);
 	}
 }
